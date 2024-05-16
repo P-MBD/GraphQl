@@ -1,7 +1,9 @@
 const express = require('express');
 const graphqlHTTP = require('express-graphql').graphqlHTTP;
 const { buildSchema } = require('graphql');
+const mongoose = require('mongoose');
 const app = express();
+mongoose.connect('mongodb://127.0.0.1/graphql-project');
 let schema = buildSchema(`
 
     type Query {
