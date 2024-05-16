@@ -3,12 +3,37 @@ const graphqlHTTP = require('express-graphql').graphqlHTTP;
 const { buildSchema } = require('graphql');
 const app = express();
 let schema = buildSchema(`
-    schema {
-        query : rootQuery
+
+    type Query {
+        user : User
+        createUser : CreateUser
     }
-    type rootQuery {
-        user : String
+    type User {
+        fname : String
+        lname : String
+        age : Int
+        gender : Gender
+        email : String
+        password : String
+        posts : [Post]
     }
+   type Post {
+        user : ID
+        title : String
+        body : String
+   } 
+   enum Gender {
+    Male
+    Female
+   }
+   input CreateUser {
+    fname : String
+    lname : String
+    age : Int
+    gender : Gender
+    email : String
+    password : String
+   }
 `)
 
 app.use('/graphql', graphqlHTTP({
