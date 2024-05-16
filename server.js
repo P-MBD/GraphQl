@@ -6,7 +6,6 @@ let schema = buildSchema(`
 
     type Query {
         user : User
-        createUser : CreateUser
     }
     type User {
         fname : String
@@ -36,7 +35,18 @@ let schema = buildSchema(`
    }
 `)
 
+let resolver = {
+    user : () => {
+        return {
+            fname : "Ali",
+            lname : "kiani"
+
+        }
+    }
+}
 app.use('/graphql', graphqlHTTP({
     schema : schema,
+    rootValue : resolver,
+    graphiql : true
  }))
 app.listen(3000, () => {console.log('server run on port 3000 ...')});
