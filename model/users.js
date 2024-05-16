@@ -8,6 +8,6 @@ const User = Schema ({
     age : {type: Number, required: true},
     email : {type: String, required: true},
     password : {type: String, required: true},
-    posts : [{type: Schema.Types.ObjectId, ref : "Post"}]
+    posts : [{type: Schema.Types.ObjectId, ref : "Comment"}]
 })
 module.exports = mongoose.model('User', User);

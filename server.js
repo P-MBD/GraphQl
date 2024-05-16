@@ -13,6 +13,8 @@ mongoose.connect('mongodb://127.0.0.1/graphql-project');
 let schema = buildSchema(`
     type Query {
         user : User
+        getAllUser : [User]
+        getUser(id : ID) : User
         FakeData : String
     }
     type User {
@@ -65,16 +67,28 @@ let resolver = {
         }
     },
     FakeData : () => {
-        const addUser = new User({
-            fname : faker.name.firstName(),
-            lname : faker.name.lastName(),
-            age : faker.random.number(),
-            email : faker.internet.email(),
-            password : faker.internet.password(),
-
-        })
-        addUser.save();
+        for(let i =0 ; i<=10 ;  i++){
+            const addUser = new Article({
+                //fname : faker.name.firstName(),
+               // lname : faker.name.lastName(),
+               // age : faker.random.number(),
+                //email : faker.internet.email(),
+                //password : faker.internet.password() ,      
+             
+                title : faker.lorem.sentence(),
+                body : faker.lorem.text()
+            })
+            addUser.save();
+        }
         return "data store ..."
+    },
+    getAllUser : async () => {
+        const users = await  User.find({});
+        return users;
+    },
+    getUser : async (args) => {
+        const user = await User.findById(args.id)
+        return user;
     }
 }
 app.use('/graphql', graphqlHTTP({
