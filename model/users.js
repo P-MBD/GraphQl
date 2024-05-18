@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 const Schema = mongoose.Schema;
 
 const User = Schema ({
@@ -10,4 +11,5 @@ const User = Schema ({
     password : {type: String, required: true},
     posts : [{type: Schema.Types.ObjectId, ref : "Comment"}]
 })
+User.plugin(mongoosePaginate);
 module.exports = mongoose.model('User', User);
