@@ -12,9 +12,9 @@ const app = express();
 mongoose.connect('mongodb://127.0.0.1/graphql-project');
 let schema = buildSchema(`
     type Query {
-        user : User
-        getAllUser : [User]
-        getUser(id : ID) : User
+        user : User!
+        getAllUser(page : Int, limit: Int) : [User]
+        getUser(id : ID!) : User
         FakeData : String
     }
     type User {
@@ -82,8 +82,10 @@ let resolver = {
         }
         return "data store ..."
     },
-    getAllUser : async () => {
-        const users = await  User.find({});
+    getAllUser : async (args) => {
+        let page = args.page || 1;
+        let limit = args.limit || 10;
+        const users = await  User.find({}).skip((page-1) * limit).limit(limit);
         return users;
     },
     getUser : async (args) => {
