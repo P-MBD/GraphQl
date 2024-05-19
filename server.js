@@ -6,57 +6,59 @@ const faker = require('faker');
 const User = require('./model/users');
 const Article = require('./model/articles');
 const Comment = require('./model/comments');
-
 const app = express();
-
 mongoose.connect('mongodb://127.0.0.1/graphql-project');
+
+
 let schema = buildSchema(`
+
     type Query {
         user : User!
-        getAllUser(page : Int, limit: Int) : userData
+        getAllUser(page : Int, limit : Int) : userData
         getUser(id : ID!) : User
-        FakeData : String
     }
+
     type User {
         fname : String
         lname : String
-        age : Int
+        age : Int @deprecated(reason : "not use this")
         gender : Gender
         email : String
         password : String
-        comments : [Comment]
-     }
-     type Paginate {
+        articles : [Article]
+    }
+
+    type Paginate {
         total : Int
-        limit :Int
+        limit : Int
         page : Int
         pages : Int
-     }
-     type userData {
+    }
+
+    type userData {
         users : [User],
         paginate : Paginate
-     }
-    type Post {
-        user : ID
-        title : String
-        body : String
     }
+
     enum Gender {
         Male
         Female
     }
+
     type Comment {
-        user : ID
-        article : ID
+        user : User
+        article : Article
         title : String
         body : String
     }
 
     type Article {
-        user : ID
+        user : User
         title : String
         body : String
+        comments : [Comment]
     }
+
     input CreateUser {
         fname : String
         lname : String
@@ -65,57 +67,45 @@ let schema = buildSchema(`
         email : String
         password : String
     }
+`);
 
-    `)
-    
 let resolver = {
     user : () => {
         return {
-            fname : "Ali",
-            lname : "kiani"
+            fname  : "ali",
+            lname : "kiani",
+            gender : "Male"
+        }
+    },
 
-        }
-    },
-    FakeData : () => {
-        for(let i =0 ; i<=10 ;  i++){
-            const addUser = new Article({
-                //fname : faker.name.firstName(),
-               // lname : faker.name.lastName(),
-               // age : faker.random.number(),
-                //email : faker.internet.email(),
-                //password : faker.internet.password() ,      
-             
-                title : faker.lorem.sentence(),
-                body : faker.lorem.text()
-            })
-            addUser.save();
-        }
-        return "data store ..."
-    },
     getAllUser : async (args) => {
         let page = args.page || 1;
         let limit = args.limit || 10;
-        const users = await User.paginate({}, {page, limit});
+        // const users = await User.find({}).skip((page - 1) * limit).limit(limit);
+        const users = await User.paginate({}, {page, limit, populate : [{ path : 'articles', populate : ['comments']}]});
         return {
             users : users.docs,
             paginate : {
-                total : users.totalDocs,
+                total : users.total,
                 limit : users.limit,
                 page : users.page,
-                pages : users.totalPages,
+                pages : users.pages
             }
         }
     },
+
     getUser : async (args) => {
         const user = await User.findById(args.id)
         return user;
     }
 }
+
 app.use('/graphql', graphqlHTTP({
-   schema : schema,
-   rootValue : resolver,
-   graphiql : true
-}))
+    schema : schema,
+    rootValue : resolver,
+    graphiql : true
+ }))
+ 
 
 
 app.listen(3000, () => {console.log('server run on port 3000 ...')});

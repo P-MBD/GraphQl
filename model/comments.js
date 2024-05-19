@@ -6,7 +6,6 @@ const Comment = Schema({
     article : { type : Schema.Types.ObjectId, ref : "Article"},
     title : { type : String, required : true},
     body : { type : String, required : true},
-
 })
 
 module.exports = mongoose.model('Comment', Comment);
