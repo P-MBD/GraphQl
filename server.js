@@ -1,6 +1,6 @@
 const express = require('express');
 const graphqlHTTP = require('express-graphql').graphqlHTTP;
-const { buildSchema } = require('graphql');
+const { makeExecutableSchema } = require('graphql-tools');
 const mongoose = require('mongoose');
 const faker = require('faker');
 const User = require('./model/users');
@@ -10,7 +10,7 @@ const app = express();
 mongoose.connect('mongodb://127.0.0.1/graphql-project');
 
 
-let schema = buildSchema(`
+let typeDefs =`
 
     type Query {
         user : User!
@@ -67,42 +67,44 @@ let schema = buildSchema(`
         email : String
         password : String
     }
-`);
+`;
 
-let resolver = {
-    user : () => {
-        return {
-            fname  : "ali",
-            lname : "kiani",
-            gender : "Male"
-        }
-    },
-
-    getAllUser : async (args) => {
-        let page = args.page || 1;
-        let limit = args.limit || 10;
-        // const users = await User.find({}).skip((page - 1) * limit).limit(limit);
-        const users = await User.paginate({}, {page, limit, populate : [{ path : 'articles', populate : ['comments']}]});
-        return {
-            users : users.docs,
-            paginate : {
-                total : users.total,
-                limit : users.limit,
-                page : users.page,
-                pages : users.pages
+let resolvers = {
+    Query : {
+        user : () => {
+            return {
+                fname  : "ali",
+                lname : "kiani",
+                gender : "Male"
             }
+        },
+    
+        getAllUser : async (param, args) => {
+            let page = args.page || 1;
+            let limit = args.limit || 10;
+            // const users = await User.find({}).skip((page - 1) * limit).limit(limit);
+            const users = await User.paginate({}, {page, limit, populate : [{ path : 'articles', populate : ['comments']}]});
+            return {
+                users : users.docs,
+                paginate : {
+                    total : users.total,
+                    limit : users.limit,
+                    page : users.page,
+                    pages : users.pages
+                }
+            }
+        },
+    
+        getUser : async (param, args) => {
+            const user = await User.findById(args.id)
+            return user;
         }
-    },
-
-    getUser : async (args) => {
-        const user = await User.findById(args.id)
-        return user;
     }
 }
 
+const schema = makeExecutableSchema({typeDefs, resolvers})
 app.use('/graphql', graphqlHTTP({
     schema : schema,
-    rootValue : resolver,
     graphiql : true
  }))
  
