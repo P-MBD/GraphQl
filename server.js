@@ -6,6 +6,7 @@ const faker = require('faker');
 const User = require('./model/users');
 const Article = require('./model/articles');
 const Comment = require('./model/comments');
+const bcrypt = require('bcryptjs');
 const app = express();
 mongoose.connect('mongodb://127.0.0.1/graphql-project');
 
@@ -104,14 +105,15 @@ let resolvers = {
     }, 
     Mutation :  {
             createUser : async(param ,args) => {
-                console.log(args)
+                const salt = bcrypt.genSaltSync(15);
+                const hash = bcrypt.hashSync(args.input.password, salt);
                 const user = await new User({
                     fname : args.input.fname,
                     lname : args.input.lname,
                     age : args.input.age,
                     gender : args.input.gender,
                     email : args.input.email,
-                    password : args.input.password
+                    password : hash
                 })
     
                 user.save();
