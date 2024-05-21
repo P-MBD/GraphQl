@@ -17,7 +17,9 @@ let typeDefs =`
         getAllUser(page : Int, limit : Int) : userData
         getUser(id : ID!) : User
     }
-
+    type Mutation {
+        createUser(input : UserInput!) : User!
+    }
     type User {
         fname : String
         lname : String
@@ -59,13 +61,13 @@ let typeDefs =`
         comments : [Comment]
     }
 
-    input CreateUser {
-        fname : String
-        lname : String
-        age : Int
-        gender : Gender
-        email : String
-        password : String
+    input UserInput {
+        fname : String!
+        lname : String!
+        age : Int!
+        gender : Gender!
+        email : String!
+        password : String!
     }
 `;
 
@@ -98,6 +100,23 @@ let resolvers = {
         getUser : async (param, args) => {
             const user = await User.findById(args.id)
             return user;
+        }
+    }, 
+    Mutation :  {
+            createUser : async(param ,args) => {
+                console.log(args)
+                const user = await new User({
+                    fname : args.input.fname,
+                    lname : args.input.lname,
+                    age : args.input.age,
+                    gender : args.input.gender,
+                    email : args.input.email,
+                    password : args.input.password
+                })
+    
+                user.save();
+                return user;
+            
         }
     }
 }
