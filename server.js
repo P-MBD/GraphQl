@@ -151,7 +151,17 @@ let resolvers = {
         comments : async (parent, args) => await Comment.find({ article : parent.id})
     }}
 
-const server = new ApolloServer({ typeDefs , resolvers})
+const server = new ApolloServer({ typeDefs , resolvers, formatError(err) {
+    if(!err.originalError) {
+        return err;
+    }
+
+    const data = err.originalError.data;
+    const code = err.originalError.code || 500;
+    const message = err.message || 'error';
+
+    return { data, status : code, message};
+}})
 server.start().then(() => {
     server.applyMiddleware({app})
     app.listen(4000 , () => {
