@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+<body>
+
+    <script>
+        let data = {
+            query : `
+                query GetUser($page: Int, $limit: Int) {
+                    getAllUser(page: $page, limit: $limit) {
+                        users {
+                        fname
+                        email @skip(if: true)
+                        age @include(if: false)
+                        articles {
+                            title
+                            body
+                            comments {
+                            title
+                            }
+                        }
+                        }
+                    }
+                }
+            `,
+            variables : {
+                "page" : 1,
+                "limit" : 1
+            }
+        };
+
+        let optitons = {
+            method : 'POST',
+            headers : { 'Content-Type' : 'application/json'},
+            body : JSON.stringify(data)
+        };
+
+        let url = 'http://127.0.0.1:4000/graphql';
+
+        fetch(url,optitons)
+            .then(res => res.json())
+            .then(res => console.log(res));
+    </script>
+    
+</body>
+</html>
