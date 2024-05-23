@@ -9,6 +9,7 @@ const User = require('./model/users');
 const Article = require('./model/articles');
 const Comment = require('./model/comments');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
 const app = express();
 mongoose.connect('mongodb://127.0.0.1/graphql-project');
 
@@ -112,6 +113,22 @@ let resolvers = {
         createUser : async (parent,args) => {
             const salt = bcrypt.genSaltSync(15);
             const hash = bcrypt.hashSync(args.input.password, salt);
+
+            const errors = [];
+            if(validator.isEmpty(args.input.fname)) {
+                errors.push({ message : "فیلد نام نمی تواند خالی بماند"})
+            }
+
+            if(!validator.isEmail(args.input.email)) {
+                errors.push({ message : "فرمت ایمیل وارد شده معتبر نمی باشد"})
+            }
+            
+            if(errors.length > 0) {
+                const error = new Error("Invalid Input.");
+                error.data = errors;
+                error.code = 422;
+                throw error;
+            }
             const user = await new User({
                 fname : args.input.fname,
                 lname : args.input.lname,
