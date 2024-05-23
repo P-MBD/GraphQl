@@ -1,6 +1,8 @@
 const express = require('express');
-const graphqlHTTP = require('express-graphql').graphqlHTTP;
-const { makeExecutableSchema } = require('graphql-tools');
+// const graphqlHTTP = require('express-graphql');
+// const { buildSchema } = require('graphql');
+// const { makeExecutableSchema } = require('graphql-tools');
+const { ApolloServer, gql } = require('apollo-server-express');
 const mongoose = require('mongoose');
 const faker = require('faker');
 const User = require('./model/users');
@@ -11,16 +13,18 @@ const app = express();
 mongoose.connect('mongodb://127.0.0.1/graphql-project');
 
 
-let typeDefs =`
+let typeDefs = gql`
 
     type Query {
         user : User!
         getAllUser(page : Int, limit : Int) : userData
         getUser(id : ID!) : User
     }
+
     type Mutation {
         createUser(input : UserInput!) : User!
     }
+
     type User {
         fname : String
         lname : String
@@ -82,11 +86,11 @@ let resolvers = {
             }
         },
     
-        getAllUser : async (param, args) => {
+        getAllUser : async (parent,args) => {
             let page = args.page || 1;
             let limit = args.limit || 10;
             // const users = await User.find({}).skip((page - 1) * limit).limit(limit);
-            const users = await User.paginate({}, {page, limit, populate : [{ path : 'articles', populate : ['comments']}]});
+            const users = await User.paginate({}, {page, limit});
             return {
                 users : users.docs,
                 paginate : {
@@ -98,37 +102,44 @@ let resolvers = {
             }
         },
     
-        getUser : async (param, args) => {
+        getUser : async (parent,args) => {
             const user = await User.findById(args.id)
             return user;
         }
-    }, 
-    Mutation :  {
-            createUser : async(param ,args) => {
-                const salt = bcrypt.genSaltSync(15);
-                const hash = bcrypt.hashSync(args.input.password, salt);
-                const user = await new User({
-                    fname : args.input.fname,
-                    lname : args.input.lname,
-                    age : args.input.age,
-                    gender : args.input.gender,
-                    email : args.input.email,
-                    password : hash
-                })
-    
-                user.save();
-                return user;
-            
+    },
+
+    Mutation : {
+        createUser : async (parent,args) => {
+            const salt = bcrypt.genSaltSync(15);
+            const hash = bcrypt.hashSync(args.input.password, salt);
+            const user = await new User({
+                fname : args.input.fname,
+                lname : args.input.lname,
+                age : args.input.age,
+                gender : args.input.gender,
+                email : args.input.email,
+                password : hash
+            })
+
+            user.save();
+            return user;
         }
-    }
-}
+    },
 
-const schema = makeExecutableSchema({typeDefs, resolvers})
-app.use('/graphql', graphqlHTTP({
-    schema : schema,
-    graphiql : true
- }))
- 
+    User : {
+        articles : async (parent, args) => await Article.find({ user : parent.id})
+    },
+
+    Article : {
+        comments : async (parent, args) => await Comment.find({ article : parent.id})
+    }}
+
+const server = new ApolloServer({ typeDefs , resolvers})
+server.start().then(() => {
+    server.applyMiddleware({app})
+    app.listen(4000 , () => {
+        console.log('server run on port 4000')
+    })
+  });
 
 
-app.listen(3000, () => {console.log('server run on port 3000 ...')});
