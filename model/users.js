@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const mongoosePaginate = require('mongoose-paginate-v2');
+const jwt = require('jsonwebtoken');
 const Schema = mongoose.Schema;
 
 const User = Schema({
@@ -12,7 +13,23 @@ const User = Schema({
 })
 
 User.plugin(mongoosePaginate);
+User.statics.createToken = async ({id, email}, screct, exp) => {
+    return  await jwt.sign({id, email}, screct, { expiresIn : exp });
+}
 
+User.statics.checkToken = async (req, secret_token) => {
+    const token = req.headers['token'];
+    if(token) {
+        try {
+            return await jwt.verify(token, secret_token);
+        } catch(e) {
+            const error = new Error('error');
+            throw error;
+        }
+    } else {
+        return null;
+    }
+}
 User.virtual('articles' , {
     ref : 'Article',
     localField : '_id',
