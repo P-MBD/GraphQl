@@ -25,7 +25,7 @@ let typeDefs = gql`
 
     type Mutation {
         createUser(input : UserInput!) : User!
-        createArticle(title: String!, body: String!) : Article!
+        createArticle(title : String!, body : String!) : Article!
     }
     type Token {
         token : String!,
@@ -180,6 +180,8 @@ let resolvers = {
                 const error = new Error('کاربر اعتبار لازم را ندارد');
                 throw error;
             }
+            console.log(args, { check });
+           // return;
             let article = await Article.create({
                 user : check.id,
                 title : args.title,
@@ -199,7 +201,8 @@ let resolvers = {
         user : async (parent, args) => await User.findById(parent.user)
     }}
 
-const server = new ApolloServer({ typeDefs , resolvers, formatError(err) {
+const server = new ApolloServer({ typeDefs , resolvers, 
+    formatError(err) {
     if(!err.originalError) {
         return err;
     }
@@ -219,6 +222,7 @@ const server = new ApolloServer({ typeDefs , resolvers, formatError(err) {
              secret_token
          }
      }
+     
      })
 server.start().then(() => {
     server.applyMiddleware({app})
@@ -226,5 +230,6 @@ server.start().then(() => {
         console.log('server run on port 4000')
     })
   });
+  
 
 

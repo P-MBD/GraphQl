@@ -5,46 +5,70 @@
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Page Title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
 </head>
 <body>
 
+        <div class="container">
+                <div class="row">
+                    <form action="#" id="form">
+                        <div class="form-group">
+                            <label>عنوان مقاله : </label>
+                            <input type="text" id="title" name="title" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>متن مقاله : </label>
+                            <input type="text" id="body" name="body" class="form-control">
+                        </div>
+                       
+                        <button type="submit" class="btn btn-danger">ارسال</button>
+                    </form>
+                </div>
+            </div>
+
     <script>
-        let data = {
+
+        document.getElementById('form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let data = {
             query : `
-                query GetUser($page: Int, $limit: Int) {
-                    getAllUser(page: $page, limit: $limit) {
-                        users {
-                        fname
-                        email @skip(if: true)
-                        age @include(if: false)
-                        articles {
-                            title
-                            body
-                            comments {
-                            title
-                            }
+                mutation createArticle ($title : String!, $body : String!){
+                    createArticle(title : $title, body : $body) {
+                        user {
+                            fname
                         }
-                        }
+                        title
                     }
                 }
             `,
             variables : {
-                "page" : 1,
-                "limit" : 1
+                "title" : document.getElementById('title').value,
+                "body" : document.getElementById('body').value,
+               
             }
         };
 
+       
+
         let optitons = {
             method : 'POST',
-            headers : { 'Content-Type' : 'application/json'},
+            headers : { 
+                'Content-Type': 'application/json',
+                'token' : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVkZGY3NGMwMzZjN2Q1NTZhY2ZjM2IxYyIsImVtYWlsIjoiYWxpQGdtYWlsLmNvbSIsImlhdCI6MTcxNjg3Nzc1NiwiZXhwIjoxNzE2ODgxMzU2fQ.H0BdDNqU5_Yw6SDQ2zDsJGBBmTizxZ2MUN3v0fweWpI'
+               
+            },
             body : JSON.stringify(data)
         };
 
-        let url = 'http://127.0.0.1:4000/graphql';
+        let url = 'http://localhost:4000/graphql';
 
         fetch(url,optitons)
             .then(res => res.json())
-            .then(res => console.log(res));
+            .then(res => console.log(res))
+            .catch(err => console.log(err));
+        })
+
     </script>
     
 </body>
